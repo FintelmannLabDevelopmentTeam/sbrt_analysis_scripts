@@ -29,7 +29,5 @@ dat1 <- Read_imp_mods_SMI(dat1)
 
 
 dat1 <- mice::as.mids(dat1)
-saveRDS(dat1, file = "~/Dropbox (Partners HealthCare)/ismail_peter_shared/SBRT/data/dat.rds")
-rm(list=setdiff(ls(), c("dat1"))) # Clear workspace of additional functions
 
 
