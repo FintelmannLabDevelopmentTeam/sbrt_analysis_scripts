@@ -12,7 +12,7 @@ library(mice)
 
 #SMCFCS Post-Imputation 
 #read data
-imps <- readRDS("/Users/ismailtahir/Documents/Fintellab_coding/imps.smcfcs.final.rds")
+imps <- readRDS("~/Desktop/imps.smcfcs.final.rds")
 m=100
 ests <- vector('list',m)
 vars <- vector('list',m)
