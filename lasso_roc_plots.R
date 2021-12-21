@@ -9,7 +9,7 @@ library(timeROC)
 #Prediction Model (glmnet)----
 ##for loop glmnet----------------
 #
-set.seed(2)
+set.seed(20)
 dat.all <- mice::complete(dat, action = 'all')
 a <- vector('list', length(dat.all))
 b <- vector('list', length(dat.all))
