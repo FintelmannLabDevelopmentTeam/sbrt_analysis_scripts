@@ -162,19 +162,6 @@ txx3p <- txx3 %>%
 
 
 
-
-#scaling/mods p/model c
-txx3p$Val <- as.numeric(txx3p$Val)
-txx3p$Val_scaled <- (txx3p$Val/max(txx3p$Val))*100
-#scaling/mods model a/clinical
-txxp$Val <- as.numeric(txxp$Val)
-txxp$Val_scaled <- (txxp$Val/max(txxp$Val))*100
-#scaling/mods
-txx2p$Val <- as.numeric(txx2p$Val)
-txx2p$Val_scaled <- (txx2p$Val/max(txx2p$Val))*100
-
-
-
 temp <- names(txx3)
 temp[order(abs(by(txx3p$Val, txx3p$Var, mean)),decreasing = TRUE)]
 txx3p$Var2 <- factor(txx3p$Var, levels = temp[order(abs(by(txx3p$Val, txx3p$Var, mean)) , decreasing = TRUE)]) #sort by absolute
