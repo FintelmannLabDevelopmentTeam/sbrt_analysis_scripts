@@ -1,4 +1,6 @@
+#Read in imputed dataset
 source('dat.R')
+#Load Packages
 library(glmnet)
 library(survival)
 library(dplyr)
@@ -6,8 +8,8 @@ library(mice)
 library(rms)
 library(timeROC)  
 library(pivot)
+
 #Prediction Model (glmnet)----
-##for loop glmnet----------------
 #
 set.seed(20)
 dat.all <- mice::complete(dat, action = 'all')
@@ -105,7 +107,7 @@ for(i in 1:length(dat.all)){
 }
 
 #quantify variable importance using scores and number of times selected as predictor
- #clinical
+#clinical
 require(tidyr)
 list <- c()
 for (i in 1:length(dat.all)){
@@ -156,91 +158,60 @@ txx3 <- txx3[c(2:101),]
 #Pivot
 txx3p <- txx3 %>%
   pivot_longer(., cols = dput(names(txx3)), names_to = "Var", values_to = "Val")
+txxp$Val <- as.numeric(txxp$Val)
+txx2p$Val <- as.numeric(txx2p$Val)
+txx3p$Val <- as.numeric(txx3p$Val)
 
+addline_format <- function(x,...){
+  gsub('\\s','\n',x)
+}
 
-
-
-
-
-temp <- names(txx3)
-temp[order(abs(by(txx3p$Val, txx3p$Var, mean)),decreasing = TRUE)]
-txx3p$Var2 <- factor(txx3p$Var, levels = temp[order(abs(by(txx3p$Val, txx3p$Var, mean)) , decreasing = TRUE)]) #sort by absolute
-                     
-table(txx3p$Var2)
-# "hi\n100"
-  ggplot(txx3p, aes(x=Var2, y = Val)) + 
-  geom_boxplot() + coord_flip()
-  
-  
-library(ggplot2)
-p <- xx3 %>% select(coef.c..1...Dimnames..1...2.19., meanScore, predictor) %>% rename(var = coef.c..1...Dimnames..1...2.19.) %>%
-  ggplot() + 
-  geom_col(aes(x=reorder(var,abs(meanScore)), y = predictor, alpha = 0.1))+scale_color_brewer(palette = 'Blues') +
-  coord_flip() + 
-  geom_boxplot(data = txx3p, aes(x = Var, y = (abs(Val_scaled))), 
-               outlier.alpha = 0.8) +  
-    scale_x_discrete(labels=c("BMI","L1 BMD","Former Smoker","SAT","Current Smoker", "SMRA", "Age",
-                              "Sex*", "ECOG 1", '%LAA','SMI*',"CAC ≥400","ECOG 2",
-                               "ECOG ≥3","SATRA", "CAC 11-399",'GTV', 'PA:Ao Ratio')) + theme_classic() +
-  labs(y = 'Variable Selection % (Barplot)', x = '') + 
+c_h <- ggplot() + 
+  geom_boxplot(data = txx3p, aes(x = reorder(txx3p$Var, -abs(txx3p$Val)), y = txx3p$Val)) + geom_hline(yintercept = 0, linetype = 2 )+
+  scale_x_discrete(labels=rev(addline_format(c("BMI 0%","BMD 0%","Ex-Smoker 0%","SAT 5%","Smoker 12%", "SMRA 13%",
+                                               "Age 51%",
+                                               "Sex 47%", "ECOG1 77%", '%LAA 82%','SMI 75%',"CAC≥400 82%","ECOG2 81%",
+                                               "ECOG≥3 83%","SATRA 87%", "CAC11-399 84%",'GTV 100%', 'PA:Ao-Ratio 100%')))) + #Double Check Order
+  labs(y = 'LASSO Prediction Coefficient', x = "Variable \n % Included") + 
+  theme_classic()+
   #Double Check Label Order
   theme(legend.position = "none",
-                      axis.title.x = element_text(color="black", size=18, face="bold"),
-                      axis.title.y = element_text(color="black", size=18, face="bold"),
-                      axis.text.x = element_text(color="black", size=18),
-                      axis.text.y = element_text(color="black", size=14)) +
-  scale_y_continuous(sec.axis = 
-                       sec_axis(~ .*(max(txx3p$Val))/100, name = 'Prediction Score (Boxplot)')) 
+        axis.title.x = element_text(color="black", size=15, face="bold"),
+        axis.title.y = element_text(color="black", size=15, face="bold"),
+        axis.text.x = element_text(color="black", size=13),
+        axis.text.y = element_text(color="black", size=13)) 
+
+b_h <- ggplot() + 
+  geom_boxplot(data = txx2p, aes(x = reorder(txx2p$Var, -abs(txx2p$Val)), y = txx2p$Val)) + geom_hline(yintercept = 0, linetype = 2 )+
+  scale_x_discrete(labels=addline_format(rev(c("BMD 1%","SMRA 6%","SAT 7%","SMI 69%",
+                                               "%LAA 81%","CAC≥400 77%",
+                                               "SATRA 89%","CAC11-399 87%", 'GTV 100%', 'PA:Ao-Ratio 100%')))) + #Double Check Order
+  labs(y = 'LASSO Prediction Coefficient', x = '') + theme_classic() +
+  #Double Check Label Order
+  theme(legend.position = "none",
+        axis.title.x = element_text(color="black", size=15, face="bold"),
+        axis.title.y = element_text(color="black", size=15, face="bold"),
+        axis.text.x = element_text(color="black", size=13),
+        axis.text.y = element_text(color="black", size=13)) 
+
+a_h <- ggplot() + 
+  geom_boxplot(data = txxp, aes(x = reorder(txxp$Var, -abs(txxp$Val)), y = txxp$Val)) + geom_hline(yintercept = 0, linetype = 2 )+
+  scale_x_discrete(labels=addline_format(rev(c("Ex-Smoker 0%","BMI 27%","Smoker 82%",
+                                               "Sex 100%","Age 99%", "ECOG1 100%",'ECOG2 100%', 'ECOG≥3 100%')))) + #Double Check Order
+  labs(y = 'LASSO Prediction Coefficient', x = '') + theme_classic() +
+  #Double Check Label Order
+  theme(legend.position = "none",
+        axis.title.x = element_text(color="black", size=15, face="bold"),
+        axis.title.y = element_text(color="black", size=15, face="bold"),
+        axis.text.x = element_text(color="black", size=13),
+        axis.text.y = element_text(color="black", size=13)) 
 
 
+hor1 <- gridExtra::grid.arrange(a_h, b_h, widths = c(1.5, 2), nrow = 1, ncol = 2) 
 
-c <- xx %>% select(coef.a..1...Dimnames..1...2.9., meanScore, predictor) %>% rename(var = coef.a..1...Dimnames..1...2.9.) %>%
-  ggplot(aes(x=(reorder(var,abs(meanScore))), y = predictor)) + 
-  geom_col(aes(alpha = 0.2))+coord_flip() + 
-  labs(y = 'Variable Selection % (Barplot)', x = '') + 
-  geom_boxplot(data = txxp, aes(x = Var, y = (abs(Val_scaled))), 
-               outlier.alpha = 0.8) + 
-  scale_x_discrete(labels=c("Former Smoker","BMI*","Current Smoker",
-                           "Sex*","Age", "ECOG 1",'ECOG 2', 'ECOG ≥3')) +  theme_classic() +    #Double Check Label Order
-  coord_flip() +  theme(legend.position = "none",
-                       axis.title.x = element_text(color="black", size=18, face="bold"),
-                       axis.title.y = element_text(color="black", size=18, face="bold"),
-                       axis.text.x = element_text(color="black", size=18),
-                       axis.text.y = element_text(color="black", size=14)) + 
-  scale_y_continuous(sec.axis = 
-                       sec_axis(~ .*(max(txx3p$Val))/100, name = 'Prediction Score (Boxplot)')) 
+hor2 <- gridExtra::grid.arrange(hor1, c_h, nrow = 2, ncol = 1, heights=c(1, 1.2))
 
-i <- xx2 %>% select(coef.b..1...Dimnames..1...2.11., meanScore, predictor) %>% rename(var = coef.b..1...Dimnames..1...2.11.) %>%
-  ggplot(aes(x=reorder(var,abs(meanScore)), y = predictor)) + 
-  geom_col(aes(alpha = 0.2))+coord_flip() + 
-  labs(y = 'Variable Selection % (Barplot)', x = '') + 
-  geom_boxplot(data = txx2p, aes(x = Var, y = ((abs(Val_scaled)))), 
-               outlier.alpha = 0.8) + 
-  scale_x_discrete(labels=c("L1 BMD*","SMRA","SAT","SMI*",
-                           "%LAA","CAC ≥400",
-                           "SATRA","CAC 11-399", 'GTV', '   PA:Ao Ratio')) + theme_classic() +     #Double Check Label Order
-  coord_flip() + theme(legend.position = "none",
-                       axis.title.x = element_text(color="black", size=18, face="bold"),
-                       axis.title.y = element_text(color="black", size=18, face="bold"),
-                       axis.text.x = element_text(color="black", size=18),
-                       axis.text.y = element_text(color="black", size=14)) +
-  scale_y_continuous(sec.axis = 
-                       sec_axis(~ .*(max(txx3p$Val))/100, name = 'Prediction Score (Boxplot)')) 
-
-
-ic <- gridExtra::grid.arrange(c, i, heights= c(1.65, 2)) 
-
-pp <- gridExtra::grid.arrange(ic, p, nrow = 1, ncol = 2)
-
-
-
-
-
-#ggsave(plot = pp, '~/Desktop/p.png', dpi = 600)
-
-
-
-
+#ggsave(plot = hor2, '~/Desktop/hor2.png', dpi = 400)
 
 
 
